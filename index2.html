@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div>
+        <input type="text" id="title" placeholder="title">
+        <br> <br>
+        <input type="text" id="description" placeholder="description">
+        <br> <br>
+        <button onclick="addTodo()">Add Todo</button>
+
+        <div id="container"></div>
+    </div>
+</body>
+<script>
+    let globalId = 1
+    let todoState = [] //storing the current state of the todo that will be a json file
+    let oldTodoState = []; //storing the old todo state also to calculate the difference between the 2 states
+    
+   function markAsDone(todoId) {
+    const parent = document.getElementById(todoId)
+    parent.children[2].innerHTML = "Done!"
+}   
+    function createChild(title,description,id) {
+        const childDiv = document.createElement("div");
+        //there is a parent div known as container and then we will create child divs for each todo item
+        //each todo item will have further children items which will be title,description and the Mark as done btn
+        const titleElement = document.createElement("div");
+        titleElement.innerHTML = title;
+        const descElement = document.createElement("div");
+        descElement.innerHTML = description;
+        const buttonElement = document.createElement("button");
+        buttonElement.innerHTML = "Mark as Done"
+
+        buttonElement.setAttribute("onclick",`markAsDone(${id})`);
+        //now that we have created the structure of the child div and the further children elements in that div 
+        // we will append the children elements
+        childDiv.append(titleElement)
+        childDiv.append(descElement)
+        childDiv.append(buttonElement)
+        childDiv.setAttribute("id",id)
+        return childDiv;
+   }
+
+   function removeTodo(todo) {
+    const element = document.getElementById(todo.id)
+    element.parent.removeChild(element)
+   }
+
+   function updateTodo(newTodos) {
+    const added = [];
+    const deleted = [];
+    const updated = [];
+
+    // Calculate added and updated todos
+    for (const newTodo of newTodos) {
+        const oldTodoIndex = oldTodoState.findIndex(oldTodo => oldTodo.id === newTodo.id);
+
+        if (oldTodoIndex === -1) {
+            // If the todo is not found in oldTodoState, it's added
+            added.push(newTodo);
+        } else {
+            // If the todo is found, check if it's updated
+            const oldTodo = oldTodoState[oldTodoIndex];
+
+            if (oldTodo.title !== newTodo.title || oldTodo.description !== newTodo.description) {
+                updated.push(newTodo);
+            }
+        }
+    }
+
+    // Calculate deleted todos
+    for (const oldTodo of oldTodoState) {
+        const todoStillExists = newTodos.some(newTodo => newTodo.id === oldTodo.id);
+
+        if (!todoStillExists) {
+            deleted.push(oldTodo);
+        }
+    }
+
+    // Update the oldTodoState for the next comparison
+    oldTodoState = newTodos.slice();
+
+    // Now you have added, deleted, and updated todos
+    console.log("Added:", added);
+    console.log("Deleted:", deleted);
+    console.log("Updated:", updated);
+}
+
+
+    function addTodo() {
+        const title = document.getElementById('title').value
+        const description = document.getElementById('description').value
+        todoState.push({
+            title : title,
+            description : description,
+            id: globalId++
+        })
+        updateState(todoState)
+    }
+
+    // State will always be an array
+    // Every element of state would have a title,description and an id
+    // task is to update the DOM according to the state
+    // we have to extract the information from the state
+
+    function updateDomAccToState(state) {
+        const parent = document.getElementById("container");
+        parent.innerHTML = "";
+        // to extract all the information from the DOM 
+        for (let i = 0; i < state.length ; i++) {
+            const child = createChild(state[i].title,state[i].description,state[i].id)
+            parent.appendChild(child);
+        }
+    }
+
+    window.setInterval(async function() {
+        const response = await fetch("https://sum-server.100xdevs.com/todos")
+        const ans = await response.json()
+        updateDomAccToState(ans.todos)
+    },5000)
+
+
+</script>
+</html>
