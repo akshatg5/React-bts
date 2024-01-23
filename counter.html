@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Counter</title>
+</head>
+<style>
+    #parentContainer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+       
+    }
+</style>
+<body>
+    <div id="parentContainer">
+        <button style="display: flex; align-items:center; text-align:center;" id="clickButton" onclick="onButtonPress()">Click Here</button>
+    </div>
+    <script>
+        // setting a global state variable similar to how state is set in React
+        let state = {
+            count: 0
+        };
+
+        // function to handle button press and update the count
+        function onButtonPress() {
+            state.count++;
+            buttonReRender();
+        }
+
+        function buttonReRender() {
+            // parentContainer div is accessed and it's content is cleared 
+            const parentContainer = document.getElementById("parentContainer");
+            parentContainer.innerHTML = "";
+
+            // updating the component count from  the state variable
+            const component = buttonComponent(state.count);
+            parentContainer.appendChild(component);
+        }
+
+        // creates a new button element with the given count
+        function buttonComponent(count) {
+            // updating the button's innerHTML, and then adding the onclick attribute to it
+            const button = document.createElement("button");
+            button.innerHTML = `Counter ${count}`;
+            button.setAttribute("onclick", "onButtonPress()");
+            return button;
+        }
+    </script>
+</body>
+</html>
